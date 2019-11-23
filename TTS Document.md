@@ -468,7 +468,8 @@ Gen audio với model mới nhất:
 python gen_wavs.py --cuda 0
 ```
 # III. Service TTS
-![Tổng quan kiến trúc hệ thống]([https://gitlab.com/dambaquyen96/aic-tts-document/raw/master/pictures/ServiceOverview.png](https://gitlab.com/dambaquyen96/aic-tts-document/raw/master/pictures/ServiceOverview.png)
+## Tổng quan kiến trúc hệ thống
+![Tổng quan kiến trúc hệ thống](pictures/ServiceOverview.png)
 
 **Service Text To Speech** bao gồm 3 service con (được đặt tại: /data/tts/workspace), bao gồm:
 -  **text-norm-service-deploy** - Java serivce: có nhiệm vụ chuẩn hóa text đầu vào thành dạng chữ viết thuần túy để mô hình TTS có thể đọc được
