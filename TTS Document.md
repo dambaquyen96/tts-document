@@ -142,7 +142,8 @@ numiennam-camhieu-001-004788-005666|đến năm hai ngàn không trăm mười b
 - Text là các chữ thuần việt viết thường
 	- Các chữ số phải được viết dưới dạng chữ đúng theo cách đọc của PTV (VD: năm 2019 -> năm hai không mười chín)
 	 - Các từ vay mượn hoặc viết tắt phải được viết đầy đủ theo cách đọc của PTV (VD: ronaldo -> rô nan đô, donald trump -> đô nan trăm)
-- Có 3 loại dấu bao gồm , . * sẽ được đánh tùy theo cách ngắt nghỉ của PTV:
+- Có 4 loại dấu bao gồm ~, . * sẽ được đánh tùy theo cách ngắt nghỉ của PTV:
+	- Đánh dấu **~** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.9 - 0.15s**
 	- Đánh dấu **,** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.15 - 0.3s**
 	- Đánh dấu **.** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.3 - 0.45s**
 	- Đánh dấu **\*** giữa 2 từ nếu khoảng silence giữa chúng lớn hơn **0.45s**
@@ -466,7 +467,8 @@ Gen audio với model mới nhất:
 ```
 python gen_wavs.py --cuda 0
 ```
-# III. Deploy lên hệ thống
+# III. Service TTS
+![Tổng quan kiến trúc hệ thống](pictures/ServiceOverview.png)
 
 **Service Text To Speech** bao gồm 3 service con (được đặt tại: /data/tts/workspace), bao gồm:
 -  **text-norm-service-deploy** - Java serivce: có nhiệm vụ chuẩn hóa text đầu vào thành dạng chữ viết thuần túy để mô hình TTS có thể đọc được
