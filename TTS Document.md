@@ -17,12 +17,44 @@ Lấy (crawl) các bài báo trên các trang báo mạng như Vnexpress hay dan
 ## 3. Tổ chức ghi âm
 -   Phòng thu: đảm bảo không để tiếng ồn lọt vào, tường có chống vọng và mic có filter.
 -   Chiến lược ghi âm: Ban đầu ghi âm 30 phút/ ngày, kiểm duyệt liên tục theo ngày, cho đến khi toàn bộ dữ liệu ngày đó đảm bảo, thì cho họ ghi âm 1h-2h/ ngày.
--   Điểu kiện đảm bảo dữ liệu: độ ổn định giọng đọc, tự nhiên, không vấp, rõ ràng và đặc biệt không có nhiễu trong file audio. Audio ưu tiên dạng định dạng wav.
--   Nghiệm thu dữ liệu hàng ngày: đảm bảo các ngày đọc không khác nhau, và dữ liệu vẫn đảm bảo các tiêu chí nêu trên.
+-   Điểu kiện đảm bảo dữ liệu: độ ổn định giọng đọc, tự nhiên, không vấp, rõ ràng và đặc biệt không có nhiễu trong file audio.
+-   Nghiệm thu dữ liệu hàng ngày: đảm bảo các ngày đọc không khác nhau, và dữ liệu vẫn đảm bảo các tiêu chí nêu trên. Dùng phần mềm Audacity để có thể phát hiện nhanh những đoạn âm thanh bất thường như nhiễu, tiếng ồn, tiếng còi xe, ...
+- File ghi âm nên được ghi full sampling rate: 48k (hoặc 44k1) sampling rate, channel thường là 2, nhưng mình convert làm 1, định dạng WAV
 
-# II. Training tutorial
+## 4. Tiền xử lý dữ liệu training  
+- Manual dùng audacity (khuyến nghị vì cho chất lượng tốt hơn).  
+	- Cắt audio theo câu sử dụng tool Audacity  
+	- Tạo transcript cho mỗi câu tương ứng dùng label tool của audacity bằng cách click vào Edit > Labels > Add Label at Selection hoặc sử dụng tổ hợp phím Crtl+B
+	- Chú ý: Có thể bấm phím B để nghe lại khi cần đồng thời nhìn vào transcript đưa phát thanh viên đọc để paste vào label.
+	- Sau khi hoàn thiện cắt audio và add label tương ứng cho 1 audio dài, bạn có thể export lable đó ra bằng cách click vào menu: File >export > export labels. Dựa vào labels file, chúng ta có thể cắt audio tương ứng của labels bằng tool sox: E.g. ```sox input.wav output.wav trim 0 00:35```
+- Desnoise bằng audacity theo cách như link sau: [https://www.podfeet.com/blog/recording/how-to-remove-noise-with-audacity/](https://www.podfeet.com/blog/recording/how-to-remove-noise-with-audacity/)
+# II. Tài liệu training
 
 Phần **Training tutorial** sẽ trình bày chi tiết các bước để có thể huấn luyện được mô hình TTS một cách tối ưu nhất 
+
+Môi trường và project training **Tacotron2** + **Waveglow** được đóng gói trong docker được nén tại **tts_tacotron_waveglow.tar.gz**
+
+**Cài đặt docker image**
+- Cài đặt docker version 19.03 trở lên
+- Cài đặt nvidia docker toolkit theo hướng dẫn
+(https://github.com/NVIDIA/nvidia-docker)
+- Import docker images:
+```
+docker load < tts_tacotron_waveglow.tar.gz
+```
+- Tạo container:
+```
+docker run -dit \
+	--restart always --net host --gpus all \
+	-v /data/storage/storage-tacotron:/storage-tacotron \
+	-v /data/storage/storage-waveglow:/storage-waveglow \
+	--name tts_training tts:tacotron-waveglow
+```
+- Truy cập vào container:
+```
+docker exec -it tts_training bash
+cd /
+```
 
 ## 1. Tacotron2
 
@@ -434,3 +466,133 @@ Gen audio với model mới nhất:
 ```
 python gen_wavs.py --cuda 0
 ```
+# III. Deploy lên hệ thống
+
+**Service Text To Speech** bao gồm 3 service con (được đặt tại: /data/tts/workspace), bao gồm:
+-  **text-norm-service-deploy** - Java serivce: có nhiệm vụ chuẩn hóa text đầu vào thành dạng chữ viết thuần túy để mô hình TTS có thể đọc được
+- **tts-service-aic** - Python web service: Web api dùng để nhận request từ client, đẩy job sang các worker và chờ nhận kết quả audio trả về
+- **end2end_api_v2** - Python worker: nhận các job từ rabbitMQ, thực hiện chuyển hóa từ text sang audio
+## 1. Service chuẩn hóa text
+### 1.1. Đường dẫn
+```
+cd /data/tts/workspace/text-norm-service-deploy
+```
+### 1.2. Chạy service
+```
+nohup java -jar TextNormService.jar > log &
+```
+Mặc định service sẽ chạy trên 0.0.0.0:7779 (có thể sửa config trong conf.properties)
+
+### 1.3. Thêm các phiên âm cho các từ OOV (tiếng nước ngoài, viết tắt, ...)
+File từ điển chứa phiên âm các từ OOV được lưu tại:
+```
+resources/dictionaries/oov_19092019.txt
+```
+Format để thêm các từ mới là: ```<từ>\t<phiên âm>``` . Trong đó ```<từ>``` và ```<phiên âm>``` cách nhau bởi dấu tab, ```<phiên âm>``` là dạng chữ viết đầy đủ cách đọc của từ đó.
+Ví dụ:
+```
+csgt-tt	cảnh sát giao thông trật tự
+dolta   đôn ta
+donald  đô nan
+trump   trăm
+```
+Chỉ cần bổ sung thêm cách phiên các từ OOV vào từ điển ở trên, rồi chạy lại service:
+```
+# Tắt service
+ps aux | grep "java -jar TextNormService.jar" | \
+		awk '{print $2}' | xargs kill -9
+# Chạy lại service
+nohup java -jar TextNormService.jar > log &
+```
+## 2. Service web api
+### 2.1. Đường dẫn
+```
+cd /data/tts/workspace/tts-service-aic
+```
+### 2.2. Chạy service
+```
+nohup python3 tts_main_service_aic.py > log &
+```
+### 2.3. Config
+Config được lưu tại ```config.py```
+#### API_VOICES
+Là array lưu trữ thông tin định danh (```id``` và ```name```) của từng giọng
+```
+API_VOICES = [
+    {
+        "id": 3,
+        "name": "Hoa Mai - Sài Gòn",
+    },
+    {
+        "id": 4,
+        "name": "Hồng Đào - Hà Nội",
+    },
+    {
+        "id": 5,
+        "name": "Nam An - Sài Gòn",
+    },
+    {
+        "id": 6,
+        "name": "Bắc Sơn - Hà Nội",
+    },
+]
+```
+#### Config cho từng giọng
+Mỗi giọng đều có những config sau:
+```
+# Hoa Mai - Sài Gòn
+API_VOICE_END2END_CAMHIEU = 3
+END2END_CAMHIEU_QUEUE = 'end2end_camhieu_queue'
+K_TIMEOUT_CAMHIEU = 0.12
+K_ABNORMAL_CAMHIEU = 0.33
+```
+Trong đó: 
+- API_VOICE_END2END_CAMHIEU: id của giọng tương ứng ở trên
+- END2END_CAMHIEU_QUEUE: tên queue được sử dụng trong rabbitMQ để giao tiếp với worker
+- K_TIMEOUT_CAMHIEU: hệ số timeout. Thời gian timeout cho mỗi request được tính như sau:
+$$ T_{timeout} = K_{timeout} * num\_of\_words $$
+Thông thường ```k_timeout = 0.24 / số worker``` (càng nhiều worker k_timeout càng giảm)
+- K_ABNORMAL_CAMHIEU: hệ số để xác định audio lỗi. Thông thường giữa thời lượng audio và số từ có tỉ lệ rất ổn định. Trong những trường hợp audio bị lỗi do mô hình (rè, rên rỉ, ...) thì thời lượng audoi sẽ dài hơn bình thường. Khi thời lượng audio lớn hơn một ngưỡng nhất định, ta sẽ coi nó là bất thường. Ngưỡng đó được xác định như sau:
+$$ Duration_{abnormal} (seconds) = K_{abnormal} * num\_of\_wods $$
+Thông thường ```k_abnormal = 0.33```
+
+####  Cách đưa giọng mới lên service
+Ví dụ ta sẽ đưa giọng Hương Sen lên service
+1. Thêm vào ```API_VOICES``` trong file config
+```
+API_VOICES = [
+    ...
+    {
+        "id": 7,
+        "name": "Hương Sen - Huế",
+    },
+]
+```
+2. Thêm config cho giọng Hương Sen
+```
+API_VOICE_END2END_HUONGSEN = 3
+END2END_HUONGSEN_QUEUE = 'end2end_huongsen_queue'
+K_TIMEOUT_HUONGSEN = 0.12
+K_ABNORMAL_HUONGSEN = 0.33
+```
+3. Khởi tạo object cho giọng trong file **tts_main_service_aic.py**
+```
+voiceEnd2End_huongsen = VoiceEnd2End("end2end_huongsen",
+	 queue=config.END2END_HUONGSEN_QUEUE, 
+	 k_timeout=config.K_TIMEOUT_HUONGSEN, 
+	 k_abnormal=config.K_ABNORMAL_HUONGSEN)
+```
+4. Thêm phần xử lý trong hàm **api_v1_path()** - file **tts_main_service_aic.py**
+```
+elif str(voiceId) == str(config.API_VOICE_END2END_HUONGSEN):
+	return voiceEnd2End_huongsen.speak_rabbitMQ(NOT_SPECIFIED_DOMAIN, 
+								        text, caching=False, normOOV=True)
+```
+5. Khởi động lại service
+```
+ps aux | grep "python3 tts_main_service_aic.py" | \
+				awk '{print $2}' | xargs kill -9
+nohup python3 tts_main_service_aic.py > log &
+```
+## 3. Worker TTS
+
