@@ -32,6 +32,14 @@ Lấy (crawl) các bài báo trên các trang báo mạng như Vnexpress hay dan
 
 	- Ấn OK để cắt
 	- Lưu thông tin cắt: File -> Export -> Export Labels  
+
+- Gộp các đoạn speech lại để được 1 câu audio theo quy tắc:
+	- Chiều dài tối thiêu là 2s, tối đa từ 8-12s
+	- Với đoạn speech < 2s, gộp với đoạn speech tiếp theo nếu silence < 1s
+	- Với đoạn speech < 5s, gộp với đoạn speech tiếp theo nếu silence <= 0.5s
+	- Với đoạn speech < 8s, gộp với đoạn speech tiếp theo nếu silence <= 0.2s
+	- Với đoạn speech >=12s thì không gộp nữa
+
 - Manual dùng audacity (khuyến nghị vì cho chất lượng tốt hơn).  
 	- Cắt audio theo câu sử dụng tool Audacity  như trên
 	- Tạo transcript cho mỗi câu tương ứng dùng label tool của audacity bằng cách click vào Edit > Labels > Add Label at Selection hoặc sử dụng tổ hợp phím Crtl+B như hình:
@@ -500,18 +508,14 @@ Thông thường, ta sẽ nghiệm thu theo lộ trình checkpoint như sau:
 -  **text-norm-service-deploy** - Java serivce: có nhiệm vụ chuẩn hóa text đầu vào thành dạng chữ viết thuần túy để mô hình TTS có thể đọc được
 - **tts-service-aic** - Python web service: Web api dùng để nhận request từ client, đẩy job sang các worker và chờ nhận kết quả audio trả về
 - **end2end_api_v2** - Python worker: nhận các job từ rabbitMQ, thực hiện chuyển hóa từ text sang audio
+- **ZaG2P** - Python library: thư viện để chuyển đổi bất kỳ từ gì sang dạng phiên âm phoneme sử dụng deep learning (VD: cooku -> cúc kiu). Dùng để hậu xử lý mọi trường hợp OOV mà text norm service không xử lý được
+
 ## 1. Service chuẩn hóa text
 ### 1.1. Đường dẫn
 ```
 cd /data/tts/workspace/text-norm-service-deploy
 ```
-### 1.2. Chạy service
-```
-nohup java -jar TextNormService.jar > log &
-```
-Mặc định service sẽ chạy trên 0.0.0.0:7779 (có thể sửa config trong conf.properties)
-
-### 1.3. Thêm các phiên âm cho các từ OOV (tiếng nước ngoài, viết tắt, ...)
+### 1.2. Thêm các phiên âm cho các từ OOV (tiếng nước ngoài, viết tắt, ...)
 File từ điển chứa phiên âm các từ OOV được lưu tại:
 ```
 resources/dictionaries/oov_19092019.txt
@@ -532,16 +536,18 @@ ps aux | grep "java -jar TextNormService.jar" | \
 # Chạy lại service
 nohup java -jar TextNormService.jar > log &
 ```
+### 1.3. Chạy service
+```
+nohup java -jar TextNormService.jar > log &
+```
+Mặc định service sẽ chạy trên 0.0.0.0:7779 (có thể sửa config trong conf.properties)
+
 ## 2. Service web api
 ### 2.1. Đường dẫn
 ```
 cd /data/tts/workspace/tts-service-aic
 ```
-### 2.2. Chạy service
-```
-nohup python3 tts_main_service_aic.py > log &
-```
-### 2.3. Config
+### 2.2. Config
 Config được lưu tại ```config.py```
 #### API_VOICES
 Là array lưu trữ thông tin định danh (```id``` và ```name```) của từng giọng
@@ -622,12 +628,57 @@ ps aux | grep "python3 tts_main_service_aic.py" | \
 				awk '{print $2}' | xargs kill -9
 nohup python3 tts_main_service_aic.py > log &
 ```
+### 2.3. Chạy service
+```
+nohup python3 tts_main_service_aic.py > log &
+```
+
 ## 3. Worker TTS
-### 2.1. Đường dẫn
+### 3.1. Đường dẫn
 ```
 cd /data/tts/workspace/end2end_api_v2
 ```
-### 2.2. Chạy service
+### 3.2. Config
+Config được lưu tại ```config.py```
+
+**WAVEGLOW_PATHS**: đường dẫn waveglow model cho từng giọng
+**TACOTRON_PATHS**: đường dẫn tacotron model cho từng giọng
+**QUEUES**: rabbitMQ queue job tương ứng với từng giọng
+**MAX_WORDS**: số từ tối đa mà mỗi giọng có thể đọc được
+####  Cách đưa giọng mới lên service
+Giả sử ta đưa giọng halinh lên service
+1. Giọng halinh sẽ được định danh bằng tên "end2end_halinh"
+2. Thêm đường dẫn waveglow model
 ```
-nohup python3 tts_main_service_aic.py > log &
+WAVEGLOW_PATHS = {
+	...
+	"end2end_halinh": "trained/zwaveglow/waveglow_luongthuhien-22k_v1_425k_light.pt",
+}
+```
+3. Thêm đường dẫn tacotron model
+```
+TACOTRON_PATHS = {
+	...
+	"end2end_halinh": "trained/halinh/tacotron2_halinh-22k_v2-20191123_20k.pt",
+}
+```
+4. Thêm tên queue (trùng với tên RabbitMQ queue tương ứng ở API Service)
+```
+QUEUES = {
+	...
+	"end2end_halinh": "end2end_halinh_queue",
+}
+```
+5. Đặt số từ tối đa giọng có thể đọc được
+```
+MAX_WORDS = {
+	...
+	"end2end_halinh": 30,
+}
+```
+### 3.3. Chạy service
+```
+nohup python3 worker_rabbitMQ.py \
+	--voice end2end_halinh \
+	--cuda 0 --new True > trained/halinh/1.log &
 ```
