@@ -22,8 +22,18 @@ Lấy (crawl) các bài báo trên các trang báo mạng như Vnexpress hay dan
 - File ghi âm nên được ghi full sampling rate: 48k (hoặc 44k1) sampling rate, channel thường là 2, nhưng mình convert làm 1, định dạng WAV
 
 ## 4. Tiền xử lý dữ liệu training  
+- Sử dụng Audacity để tự động tách các khoảng **speech** và **silence**:
+	- Chọn Audio cần cắt: File -> Import -> Audio
+	- Chọn toàn bộ audio vừa import: Ctrl + A
+	- Tự động tách vùng speech và silence: Analyze -> Sound Finder
+	- Chọn tham số cắt: 26.0 - 0.100 - 0.100 - 0.100 - 0
+
+	![Hình I.4.3](pictures/I.4.Hinh3.png)
+
+	- Ấn OK để cắt
+	- Lưu thông tin cắt: File -> Export -> Export Labels  
 - Manual dùng audacity (khuyến nghị vì cho chất lượng tốt hơn).  
-	- Cắt audio theo câu sử dụng tool Audacity  
+	- Cắt audio theo câu sử dụng tool Audacity  như trên
 	- Tạo transcript cho mỗi câu tương ứng dùng label tool của audacity bằng cách click vào Edit > Labels > Add Label at Selection hoặc sử dụng tổ hợp phím Crtl+B như hình:
 
 	![Hình I.4.1](pictures/I.4.Hinh1.png)
@@ -153,15 +163,6 @@ numiennam-camhieu-001-004788-005666|đến năm hai ngàn không trăm mười b
 	- Đánh dấu **,** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.15 - 0.3s**
 	- Đánh dấu **.** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.3 - 0.45s**
 	- Đánh dấu **\*** giữa 2 từ nếu khoảng silence giữa chúng lớn hơn **0.45s**
-
-Sử dụng Audacity để tự động tách các khoảng **speech** và **silence**:
-
-- Chọn Audio cần cắt: File -> Import -> Audio
-- Chọn toàn bộ audio vừa import: Ctrl + A
-- Tự động tách vùng speech và silence: Analyze -> Sound Finder
-- Chọn tham số cắt: 26.0 - 0.100 - 0.100 - 0.100 - 0
-- Ấn OK để cắt
-- Lưu thông tin cắt: File -> Export -> Export Labels  
 
 Config file **hparams.py** bằng cách sửa các dòng config sau:
 ```
@@ -622,4 +623,11 @@ ps aux | grep "python3 tts_main_service_aic.py" | \
 nohup python3 tts_main_service_aic.py > log &
 ```
 ## 3. Worker TTS
-
+### 2.1. Đường dẫn
+```
+cd /data/tts/workspace/end2end_api_v2
+```
+### 2.2. Chạy service
+```
+nohup python3 tts_main_service_aic.py > log &
+```
