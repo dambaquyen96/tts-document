@@ -24,9 +24,11 @@ Lấy (crawl) các bài báo trên các trang báo mạng như Vnexpress hay dan
 ## 4. Tiền xử lý dữ liệu training  
 - Manual dùng audacity (khuyến nghị vì cho chất lượng tốt hơn).  
 	- Cắt audio theo câu sử dụng tool Audacity  
-	- Tạo transcript cho mỗi câu tương ứng dùng label tool của audacity bằng cách click vào Edit > Labels > Add Label at Selection hoặc sử dụng tổ hợp phím Crtl+B
+	- Tạo transcript cho mỗi câu tương ứng dùng label tool của audacity bằng cách click vào Edit > Labels > Add Label at Selection hoặc sử dụng tổ hợp phím Crtl+B như hình:
+![Hình I.4.1](pictures/I.4.Hinh1.png)
 	- Chú ý: Có thể bấm phím B để nghe lại khi cần đồng thời nhìn vào transcript đưa phát thanh viên đọc để paste vào label.
 	- Sau khi hoàn thiện cắt audio và add label tương ứng cho 1 audio dài, bạn có thể export lable đó ra bằng cách click vào menu: File >export > export labels. Dựa vào labels file, chúng ta có thể cắt audio tương ứng của labels bằng tool sox: E.g. ```sox input.wav output.wav trim 0 00:35```
+![Hình I.4.2](pictures/I.4.Hinh2.png)
 - Desnoise bằng audacity theo cách như link sau: [https://www.podfeet.com/blog/recording/how-to-remove-noise-with-audacity/](https://www.podfeet.com/blog/recording/how-to-remove-noise-with-audacity/)
 # II. Tài liệu training
 
@@ -314,6 +316,15 @@ ztacotron2
 	        └───tts_samples
 	            └───tacotron2_v1-20191113_5k+waveglow_doanngocle_v2
 ```
+### 1.8. Nghiệm thu mô hình
+Để đánh giá mô hình một cách trực quan nhất, hãy gen audio từ checkpoint mới nhất và nghe thử, xem audio đã tự nhiên hay chưa, có đọc đúng hay không.
+
+Thông thường, ta sẽ nghiệm thu theo lộ trình checkpoint như sau:
+- 5k iters:  giọng đọc gần giống giọng gốc, đọc nghe được các từ. Ngoài ra có thể vẫn còn đọc sai, audio có thể hơi rè hoặc nghe không được tự nhiên
+- 20k iters: giọng đọc tự nhiên hơn iters, đọc đúng từ hơn, audio trong hơn
+- 40k iters: giọng đọc tự nhiên, đọc đúng từ, audio không còn rè
+- 40-70k iters: có thể tốt hơn, cần gen audio ra nghe để cảm nhận.
+=> Có thể chọn model 40k iters làm final model hoặc cao hơn.  Tuy nhiên cần lưu ý, iters càng cao thì audio càng có thể bị overfit
 
 ## 2. Waveglow
 
@@ -467,9 +478,18 @@ Gen audio với model mới nhất:
 ```
 python gen_wavs.py --cuda 0
 ```
+### 2.8. Nghiệm thu mô hình
+Để đánh giá mô hình một cách trực quan nhất, hãy gen audio từ checkpoint mới nhất và nghe thử, xem audio nghe có giống audio gốc hay không
+
+Thông thường, ta sẽ nghiệm thu theo lộ trình checkpoint như sau:
+- 200k iters:  audio nghe đã khá giống audio gốc
+- 300k iters: audio nghe giống audio gốc
+- 400k iters: có thể lấy làm final model
+=> Thông thường iters từ 300k trở lên có thể chọn làm final model, tuy nhiên cần theo dõi validation loss để tránh tình trạng overfit
+
 # III. Service TTS
 ## Tổng quan kiến trúc hệ thống
-![Tổng quan kiến trúc hệ thống](pictures/ServiceOverview.png)
+![Tổng quan kiến trúc hệ thống](pictures/ServiceOverview.png)	
 
 **Service Text To Speech** bao gồm 3 service con (được đặt tại: /data/tts/workspace), bao gồm:
 -  **text-norm-service-deploy** - Java serivce: có nhiệm vụ chuẩn hóa text đầu vào thành dạng chữ viết thuần túy để mô hình TTS có thể đọc được
