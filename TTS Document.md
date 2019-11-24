@@ -1,6 +1,6 @@
 # Tài liệu cho hệ thống TTS
 # I. Chuẩn bị dữ liệu
-## 1. Chọn giọng đọc
+## I.1. Chọn giọng đọc
 Đưa 2 đoạn văn bản cho các ứng viên đọc, sau đó chọn ra những giọng tốt nhất dựa trên các tiêu chí sau:
 
 -   Giọng đọc hay thu hút
@@ -8,20 +8,20 @@
 -   Đọc rõ ràng: nghe rõ các từ dù đọc hơi nhanh nhưng không mất chút âm nào.
 -   Độ ổn định: phong cách đọc, tốc độ đọc và âm lượng không thay đổi.
 
-## 2. Chuẩn bị transcript đọc
+## I.2. Chuẩn bị transcript đọc
 Lấy (crawl) các bài báo trên các trang báo mạng như Vnexpress hay dantri.com.vn đảm bảo:
 
 -   Các lĩnh vực đa dạng: thể thao, sức khỏe, đời sống …    
 -   Độ phủ từ ( trên 3k từ: cả từ vay mượn)
 
-## 3. Tổ chức ghi âm
+## I.3. Tổ chức ghi âm
 -   Phòng thu: đảm bảo không để tiếng ồn lọt vào, tường có chống vọng và mic có filter.
 -   Chiến lược ghi âm: Ban đầu ghi âm 30 phút/ ngày, kiểm duyệt liên tục theo ngày, cho đến khi toàn bộ dữ liệu ngày đó đảm bảo, thì cho họ ghi âm 1h-2h/ ngày.
 -   Điểu kiện đảm bảo dữ liệu: độ ổn định giọng đọc, tự nhiên, không vấp, rõ ràng và đặc biệt không có nhiễu trong file audio.
 -   Nghiệm thu dữ liệu hàng ngày: đảm bảo các ngày đọc không khác nhau, và dữ liệu vẫn đảm bảo các tiêu chí nêu trên. Dùng phần mềm Audacity để có thể phát hiện nhanh những đoạn âm thanh bất thường như nhiễu, tiếng ồn, tiếng còi xe, ...
 - File ghi âm nên được ghi full sampling rate: 48k (hoặc 44k1) sampling rate, channel thường là 2, nhưng mình convert làm 1, định dạng WAV
 
-## 4. Tiền xử lý dữ liệu training  
+## I.4. Tiền xử lý dữ liệu training  
 - Sử dụng Audacity để tự động tách các khoảng **speech** và **silence**:
 	- Chọn Audio cần cắt: File -> Import -> Audio
 	- Chọn toàn bộ audio vừa import: Ctrl + A
@@ -80,7 +80,7 @@ docker exec -it tts_training bash
 cd /
 ```
 
-## 1. Tacotron2
+## II.1. Tacotron2
 
 Cấu trúc project Taocotron2
 ```
@@ -120,13 +120,13 @@ ztacotron2
 	│   vad.py
 ```
 
-### 1.1. Môi trường training
+### II.1.1. Môi trường training
 Môi trường training đã được đóng gói và chuẩn bị sẵn dưới dạng conda enviroment
 ```
 conda activate tacotron
 ```
 
-### 1.2. Chuẩn bị dữ liệu training
+### II.1.2. Chuẩn bị dữ liệu training
 Clone folder **base** để tạo 1 project riêng cho giọng mới
 ```
 ztacotron2
@@ -180,7 +180,7 @@ version='v1-20191113', # Tên version training
 sampling_rate=16000, # Sample rate của audio
 ```
 	
-### 1.3. Tiền xử lý dữ liệu
+### II.1.3. Tiền xử lý dữ liệu
 
 Sau khi đã chuẩn bị đầy đủ dữ liệu và nhãn như trên, ta sẽ tiến hành các bước tiền xử lý dữ liệu
 #### Chuẩn hóa audio
@@ -239,7 +239,7 @@ ztacotron2
 	            │   metadata_train.txt
 	            │   metadata_val.txt
 ```
-### 1.4. Config feature
+### II.1.4. Config feature
 Sửa config file **[hparams.py](http://hparams.py/)**:
 ```
 ################################
@@ -262,7 +262,7 @@ mel_fmax=7650.0,
 | Female |     16000     |     200    |     800    |   95.0   |  7600.0  |
 | Female |     22050     |     256    |    1024    |   95.0   |  7600.0  |
 
-### 1.5. Training
+### II.1.5. Training
 Chạy training trên GPU 0:
 ```
 python train_tacotron_new.py --cuda 0
@@ -295,13 +295,13 @@ python train_tacotron_new.py
 	--cuda 0
 ```
 
-### 1.6. Kiểm tra log
+### II.1.6. Kiểm tra log
 Check log trên tensorboard:
 ```
 tensorboard --logdir experiments/camhieu/logs
 ```
 
-### 1.7. Tạo file TTS từ model
+### II.1.7. Tạo file TTS từ model
 Gen audio với model mới nhất:
 ```
 python gen_tts.py 
@@ -329,7 +329,7 @@ ztacotron2
 	        └───tts_samples
 	            └───tacotron2_v1-20191113_5k+waveglow_doanngocle_v2
 ```
-### 1.8. Nghiệm thu mô hình
+### II.1.8. Nghiệm thu mô hình
 Để đánh giá mô hình một cách trực quan nhất, hãy gen audio từ checkpoint mới nhất và nghe thử, xem audio đã tự nhiên hay chưa, có đọc đúng hay không.
 
 Thông thường, ta sẽ nghiệm thu theo lộ trình checkpoint như sau:
@@ -339,7 +339,7 @@ Thông thường, ta sẽ nghiệm thu theo lộ trình checkpoint như sau:
 - 40-70k iters: có thể tốt hơn, cần gen audio ra nghe để cảm nhận.
 => Có thể chọn model 40k iters làm final model hoặc cao hơn.  Tuy nhiên cần lưu ý, iters càng cao thì audio càng có thể bị overfit
 
-## 2. Waveglow
+## II.2. Waveglow
 
 Cấu trúc project Waveglow
 ```
@@ -367,13 +367,13 @@ zwaveglow
 	│   train_waveglow.py
 ```
 
-### 2.1. Môi trường training
+### II.2.1. Môi trường training
 Môi trường training đã được đóng gói và chuẩn bị sẵn dưới dạng conda enviroment
 ```
 conda activate waveglow
 ```
 
-### 2.2. Chuẩn bị dữ liệu training
+### II.2.2. Chuẩn bị dữ liệu training
 Clone folder **base** để tạo 1 project riêng cho giọng mới
 ```
 zwaveglow
@@ -414,7 +414,7 @@ Config file **config.json** bằng cách sửa các dòng config sau:
 }
 ```
 
-### 2.3. Tiền xử lý dữ liệu
+### II.2.3. Tiền xử lý dữ liệu
 Chạy:
 ```
 python prepare_files_list.py
@@ -431,7 +431,7 @@ ztacotron2
 	        │   test.txt
 ```
 
-### 2.4. Config feature
+### II.2.4. Config feature
 Sửa config file **config.json**:
 ```
 "feature_config": {
@@ -453,7 +453,7 @@ Sửa config file **config.json**:
 | Female |     16000     |     200    |     800    |   95.0   |  7600.0  |
 | Female |     22050     |     256    |    1024    |   95.0   |  7600.0  |
 
-### 2.5. Training
+### II.2.5. Training
 Chạy training trên GPU 0:
 ```
 python train_waveglow.py --cuda 0
@@ -481,17 +481,17 @@ Nếu muốn tiếp tục training từ checkpoint bất kỳ, sửa **checkpoin
 ```
 python train_waveglow.py --cuda 0
 ```
-### 2.6. Kiểm tra log
+### II.2.6. Kiểm tra log
 Check log trên tensorboard:
 ```
 tensorboard --logdir experiments/camhieu/logs
 ```
-### 2.7. Tạo file TTS từ model
+### II.2.7. Tạo file TTS từ model
 Gen audio với model mới nhất:
 ```
 python gen_wavs.py --cuda 0
 ```
-### 2.8. Nghiệm thu mô hình
+### II.2.8. Nghiệm thu mô hình
 Để đánh giá mô hình một cách trực quan nhất, hãy gen audio từ checkpoint mới nhất và nghe thử, xem audio nghe có giống audio gốc hay không
 
 Thông thường, ta sẽ nghiệm thu theo lộ trình checkpoint như sau:
@@ -510,12 +510,12 @@ Thông thường, ta sẽ nghiệm thu theo lộ trình checkpoint như sau:
 - **end2end_api_v2** - Python worker: nhận các job từ rabbitMQ, thực hiện chuyển hóa từ text sang audio
 - **ZaG2P** - Python library: thư viện để chuyển đổi bất kỳ từ gì sang dạng phiên âm phoneme sử dụng deep learning (VD: cooku -> cúc kiu). Dùng để hậu xử lý mọi trường hợp OOV mà text norm service không xử lý được
 
-## 1. Service chuẩn hóa text
-### 1.1. Đường dẫn
+## III.1. Service chuẩn hóa text
+### III.1.1. Đường dẫn
 ```
 cd /data/tts/workspace/text-norm-service-deploy
 ```
-### 1.2. Thêm các phiên âm cho các từ OOV (tiếng nước ngoài, viết tắt, ...)
+### III.1.2. Thêm các phiên âm cho các từ OOV (tiếng nước ngoài, viết tắt, ...)
 File từ điển chứa phiên âm các từ OOV được lưu tại:
 ```
 resources/dictionaries/oov_19092019.txt
@@ -536,18 +536,18 @@ ps aux | grep "java -jar TextNormService.jar" | \
 # Chạy lại service
 nohup java -jar TextNormService.jar > log &
 ```
-### 1.3. Chạy service
+### III.1.3. Chạy service
 ```
 nohup java -jar TextNormService.jar > log &
 ```
 Mặc định service sẽ chạy trên 0.0.0.0:7779 (có thể sửa config trong conf.properties)
 
-## 2. Service web api
-### 2.1. Đường dẫn
+## III.2. Service web api
+### III.2.1. Đường dẫn
 ```
 cd /data/tts/workspace/tts-service-aic
 ```
-### 2.2. Config
+### III.2.2. Config
 Config được lưu tại ```config.py```
 #### API_VOICES
 Là array lưu trữ thông tin định danh (```id``` và ```name```) của từng giọng
@@ -628,17 +628,17 @@ ps aux | grep "python3 tts_main_service_aic.py" | \
 				awk '{print $2}' | xargs kill -9
 nohup python3 tts_main_service_aic.py > log &
 ```
-### 2.3. Chạy service
+### III.2.3. Chạy service
 ```
 nohup python3 tts_main_service_aic.py > log &
 ```
 
-## 3. Worker TTS
-### 3.1. Đường dẫn
+## III.3. Worker TTS
+### III.3.1. Đường dẫn
 ```
 cd /data/tts/workspace/end2end_api_v2
 ```
-### 3.2. Config
+### III.3.2. Config
 Config được lưu tại ```config.py```
 
 **WAVEGLOW_PATHS**: đường dẫn waveglow model cho từng giọng
@@ -676,7 +676,7 @@ MAX_WORDS = {
 	"end2end_halinh": 30,
 }
 ```
-### 3.3. Chạy service
+### III.3.3. Chạy service
 ```
 nohup python3 worker_rabbitMQ.py \
 	--voice end2end_halinh \
