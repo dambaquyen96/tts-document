@@ -25,10 +25,14 @@ Lấy (crawl) các bài báo trên các trang báo mạng như Vnexpress hay dan
 - Manual dùng audacity (khuyến nghị vì cho chất lượng tốt hơn).  
 	- Cắt audio theo câu sử dụng tool Audacity  
 	- Tạo transcript cho mỗi câu tương ứng dùng label tool của audacity bằng cách click vào Edit > Labels > Add Label at Selection hoặc sử dụng tổ hợp phím Crtl+B như hình:
-![Hình I.4.1](pictures/I.4.Hinh1.png)
+
+	![Hình I.4.1](pictures/I.4.Hinh1.png)
+
 	- Chú ý: Có thể bấm phím B để nghe lại khi cần đồng thời nhìn vào transcript đưa phát thanh viên đọc để paste vào label.
 	- Sau khi hoàn thiện cắt audio và add label tương ứng cho 1 audio dài, bạn có thể export lable đó ra bằng cách click vào menu: File >export > export labels. Dựa vào labels file, chúng ta có thể cắt audio tương ứng của labels bằng tool sox: E.g. ```sox input.wav output.wav trim 0 00:35```
-![Hình I.4.2](pictures/I.4.Hinh2.png)
+
+	![Hình I.4.2](pictures/I.4.Hinh2.png)
+
 - Desnoise bằng audacity theo cách như link sau: [https://www.podfeet.com/blog/recording/how-to-remove-noise-with-audacity/](https://www.podfeet.com/blog/recording/how-to-remove-noise-with-audacity/)
 # II. Tài liệu training
 
