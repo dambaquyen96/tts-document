@@ -497,7 +497,7 @@ python gen_wavs.py --cuda 0
 Thông thường, ta sẽ nghiệm thu theo lộ trình checkpoint như sau:
 - 200k iters:  audio nghe đã khá giống audio gốc
 - 300k iters: audio nghe giống audio gốc
-- 400k iters: có thể lấy làm final model
+- 300k+ iters: có thể tốt hơn
 => Thông thường iters từ 300k trở lên có thể chọn làm final model, tuy nhiên cần theo dõi validation loss để tránh tình trạng overfit
 
 # III. Service TTS
@@ -675,6 +675,13 @@ MAX_WORDS = {
 	...
 	"end2end_halinh": 30,
 }
+```
+6. Thêm vào argument ```--voice``` trong file ```worker_rabbitMQ.py```
+```
+parser.add_argument('--voice', choices=[
+        ...
+        'end2end_halinh',
+    ], required=True)
 ```
 ### III.3.3. Chạy service
 ```
