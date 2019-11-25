@@ -587,7 +587,7 @@ Trong đó:
 $$ T_{timeout} = K_{timeout} * num\_of\_words $$
 Thông thường ```k_timeout = 0.24 / số worker``` (càng nhiều worker k_timeout càng giảm)
 - K_ABNORMAL_CAMHIEU: hệ số để xác định audio lỗi. Thông thường giữa thời lượng audio và số từ có tỉ lệ rất ổn định. Trong những trường hợp audio bị lỗi do mô hình (rè, rên rỉ, ...) thì thời lượng audoi sẽ dài hơn bình thường. Khi thời lượng audio lớn hơn một ngưỡng nhất định, ta sẽ coi nó là bất thường. Ngưỡng đó được xác định như sau:
-$$ Duration_{abnormal} (seconds) = K_{abnormal} * num\_of\_wods $$
+$$ Duration_{abnormal} (seconds) = K_{abnormal} * num\_of\_words $$
 Thông thường ```k_abnormal = 0.33```
 
 ####  Cách đưa giọng mới lên service
