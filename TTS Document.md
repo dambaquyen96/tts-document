@@ -167,7 +167,7 @@ numiennam-camhieu-001-004788-005666|đến năm hai ngàn không trăm mười b
 	- Các chữ số phải được viết dưới dạng chữ đúng theo cách đọc của PTV (VD: năm 2019 -> năm hai không mười chín)
 	 - Các từ vay mượn hoặc viết tắt phải được viết đầy đủ theo cách đọc của PTV (VD: ronaldo -> rô nan đô, donald trump -> đô nan trăm)
 - Có 4 loại dấu bao gồm ~, . * sẽ được đánh tùy theo cách ngắt nghỉ của PTV:
-	- Đánh dấu **~** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.9 - 0.15s**
+	- Đánh dấu **~** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.09 - 0.15s**
 	- Đánh dấu **,** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.15 - 0.3s**
 	- Đánh dấu **.** giữa 2 từ nếu khoảng silence giữa chúng khoảng **0.3 - 0.45s**
 	- Đánh dấu **\*** giữa 2 từ nếu khoảng silence giữa chúng lớn hơn **0.45s**
